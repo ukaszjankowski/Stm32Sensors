@@ -39,3 +39,4 @@
 *.elf
 *.bin
 /Debug/makefile
+/Release/makefile

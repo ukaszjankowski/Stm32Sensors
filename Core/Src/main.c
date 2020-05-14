@@ -98,6 +98,12 @@ int main(void)
   /* USER CODE BEGIN 2 */
   int8_t rslt;
   struct bmp280_dev bmp;
+  struct bmp280_config conf;
+  struct bmp280_uncomp_data ucomp_data;
+  int32_t temp32;
+  double temp;
+  uint32_t pres32, pres64;
+  double pres;
 
   /* Map the delay function pointer with the function responsible for implementing the delay */
   bmp.delay_ms = delay_ms;

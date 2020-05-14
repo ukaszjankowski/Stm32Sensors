@@ -25,6 +25,8 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "bmp280.h"
+#include "usbd_cdc_if.h"
+#include <stdio.h>
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -104,6 +106,7 @@ int main(void)
   double temp;
   uint32_t pres32, pres64;
   double pres;
+  uint8_t buf[100] = {};
 
   /* Map the delay function pointer with the function responsible for implementing the delay */
   bmp.delay_ms = delay_ms;
@@ -155,7 +158,8 @@ int main(void)
 
 	/* Getting the compensated temperature as floating point value */
 	rslt = bmp280_get_comp_temp_double(&temp, ucomp_data.uncomp_temp, &bmp);
-	printf("UT: %ld, T32: %ld, T: %f \r\n", ucomp_data.uncomp_temp, temp32, temp);
+	snprintf((char *)buf, sizeof(buf), "UT: %ld, T32: %ld, T: %f \r\n", ucomp_data.uncomp_temp, temp32, temp);
+	CDC_Transmit_FS(buf, sizeof(buf));
 
 	/* Pressure */
 	/* Reading the raw data from sensor */
@@ -169,14 +173,18 @@ int main(void)
 
 	/* Getting the compensated pressure as floating point value */
 	rslt = bmp280_get_comp_pres_double(&pres, ucomp_data.uncomp_press, &bmp);
-	printf("UP: %ld, P32: %ld, P64: %ld, P64N: %ld, P: %f\r\n",
+	snprintf((char *)buf, sizeof(buf), "UP: %ld, P32: %ld, P64: %ld, P64N: %ld, P: %f rslt: %d\r\n",
 		ucomp_data.uncomp_press,
 		pres32,
 		pres64,
 		pres64 / 256,
-		pres);
+		pres,
+		rslt);
+	CDC_Transmit_FS(buf, sizeof(buf));
 
 	bmp.delay_ms(1000); /* Sleep time between measurements = BMP280_ODR_1000_MS */
+
+	HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_13);
   }
   /* USER CODE END 3 */
 }
@@ -298,7 +306,7 @@ static void MX_GPIO_Init(void)
  */
 void delay_ms(uint32_t period_ms)
 {
-    /* Implement the delay routine according to the target machine */
+    HAL_Delay(period_ms);
 }
 
 /*!
@@ -316,9 +324,8 @@ void delay_ms(uint32_t period_ms)
  */
 int8_t i2c_reg_write(uint8_t i2c_addr, uint8_t reg_addr, uint8_t *reg_data, uint16_t length)
 {
-
-    /* Implement the I2C write routine according to the target machine. */
-    return -1;
+	HAL_StatusTypeDef result = HAL_I2C_Mem_Write(&hi2c1, i2c_addr << 1, reg_addr, 1, reg_data, length, 200);
+	return (int8_t)result;
 }
 
 /*!
@@ -336,9 +343,8 @@ int8_t i2c_reg_write(uint8_t i2c_addr, uint8_t reg_addr, uint8_t *reg_data, uint
  */
 int8_t i2c_reg_read(uint8_t i2c_addr, uint8_t reg_addr, uint8_t *reg_data, uint16_t length)
 {
-
-    /* Implement the I2C read routine according to the target machine. */
-    return -1;
+	HAL_StatusTypeDef result = HAL_I2C_Mem_Read(&hi2c1, i2c_addr << 1, reg_addr, 1, reg_data, length, 200);
+	return (int8_t)result;
 }
 
 /* USER CODE END 4 */

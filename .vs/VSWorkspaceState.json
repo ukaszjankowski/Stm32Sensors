@@ -1,6 +1,9 @@
 {
   "ExpandedNodes": [
-    ""
+    "",
+    "\\Core",
+    "\\Debug"
   ],
+  "SelectedNode": "\\Debug",
   "PreviewInSolutionExplorer": false
 }

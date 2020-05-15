@@ -26,6 +26,7 @@
 /* USER CODE BEGIN Includes */
 #include "bmp280.h"
 #include "usbd_cdc_if.h"
+#include "fir.h"
 #include <stdio.h>
 /* USER CODE END Includes */
 
@@ -134,7 +135,7 @@ int main(void)
   conf.os_pres = BMP280_OS_4X;
 
   /* Setting the output data rate as 1HZ(1000ms) */
-  conf.odr = BMP280_ODR_1000_MS;
+  conf.odr = BMP280_ODR_0_5_MS; // BMP280_ODR_1000_MS;
   rslt = bmp280_set_config(&conf, &bmp);
 
   /* Always set the power mode after setting the configuration */
@@ -158,8 +159,6 @@ int main(void)
 
 	/* Getting the compensated temperature as floating point value */
 	rslt = bmp280_get_comp_temp_double(&temp, ucomp_data.uncomp_temp, &bmp);
-	snprintf((char *)buf, sizeof(buf), "UT: %ld, T32: %ld, T: %f \r\n", ucomp_data.uncomp_temp, temp32, temp);
-	CDC_Transmit_FS(buf, sizeof(buf));
 
 	/* Pressure */
 	/* Reading the raw data from sensor */
@@ -173,16 +172,10 @@ int main(void)
 
 	/* Getting the compensated pressure as floating point value */
 	rslt = bmp280_get_comp_pres_double(&pres, ucomp_data.uncomp_press, &bmp);
-	snprintf((char *)buf, sizeof(buf), "UP: %ld, P32: %ld, P64: %ld, P64N: %ld, P: %f rslt: %d\r\n",
-		ucomp_data.uncomp_press,
-		pres32,
-		pres64,
-		pres64 / 256,
-		pres,
-		rslt);
+	snprintf((char *)buf, sizeof(buf), "T: %f P: %f \r\n", temp, pres);
 	CDC_Transmit_FS(buf, sizeof(buf));
 
-	bmp.delay_ms(1000); /* Sleep time between measurements = BMP280_ODR_1000_MS */
+	// bmp.delay_ms(1000); /* Sleep time between measurements = BMP280_ODR_1000_MS */
 
 	HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_13);
   }
